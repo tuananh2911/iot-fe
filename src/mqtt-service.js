@@ -1,6 +1,6 @@
 // Trong file mqttService.js
 import mqtt from "mqtt";
-import { TOPIC_CHECK_MODE, TOPIC_DATA } from "./constant";
+import { TOPIC_CHECK_MODE, TOPIC_DATA, TOPIC_RESPONSE_MODE } from "./constant";
 const connectMQTT = (
   setTemperature,
   setHumidity,
@@ -15,7 +15,7 @@ const connectMQTT = (
   client.on("connect", () => {
     console.log("Connected to MQTT Broker");
     client.subscribe(TOPIC_DATA);
-    client.subscribe(TOPIC_CHECK_MODE);
+    // client.subscribe(TOPIC_CHECK_MODE);
 
     // ...subscribe to other topics as needed...
   });
@@ -36,18 +36,26 @@ const connectMQTT = (
     setFanSpeed(data.fanSpeed);
 
     setIsHealthy(data.healthy);
-    const isManualControl = JSON.parse(
-      sessionStorage.getItem("isManualControl")
-    );
-
-    const mode = { mode: isManualControl };
-    sendMessageToMQTT(client, TOPIC_CHECK_MODE, mode);
   });
 
   return client;
 };
 const initMQTT = () => {
   const client = mqtt.connect("ws://103.77.246.226:8083/mqtt");
+  return client;
+};
+const modeMQTT = () => {
+  const client = mqtt.connect("ws://103.77.246.226:8083/mqtt");
+  client.on("connect", () => {
+    client.subscribe(TOPIC_CHECK_MODE);
+  });
+  client.on("message", (topic, message) => {
+    const isManualControl = JSON.parse(
+      sessionStorage.getItem("isManualControl")
+    );
+    const mode = { isManualControl: isManualControl };
+    sendMessageToMQTT(client, TOPIC_RESPONSE_MODE, mode);
+  });
   return client;
 };
 const sendMessageToMQTT = (client, topic, message) => {
@@ -65,4 +73,4 @@ const sendMessageToMQTT = (client, topic, message) => {
   });
 };
 
-export { connectMQTT, sendMessageToMQTT, initMQTT };
+export { connectMQTT, sendMessageToMQTT, initMQTT, modeMQTT };

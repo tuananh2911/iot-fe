@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import { Icon } from "@iconify/react";
-import { TOPIC_DATA, TOPIC_MANUAL, TOPIC_CHECK_MODE } from "../constant";
-import { connectMQTT, sendMessageToMQTT, initMQTT } from "../mqtt-service";
+import { TOPIC_DATA, TOPIC_CONTROL, TOPIC_CHECK_MODE, TOPIC_RESPONSE_MODE } from "../constant";
+import { connectMQTT, sendMessageToMQTT, initMQTT, modeMQTT } from "../mqtt-service";
 function PlantDetail({ match }) {
   const { id } = 1;
   const [temperature, setTemperature] = useState(25);
@@ -18,6 +18,7 @@ function PlantDetail({ match }) {
   const [knobRotationFan, setKnobRotationFan] = useState(0);
   const [mqttClient, setMqttClient] = useState(null);
   const [initMqtt, setInitMQTT] = useState(null);
+  const [modeCheckMQTT, setModeMQTT] = useState(null);
   useEffect(() => {
     const client = connectMQTT(
       setTemperature,
@@ -29,10 +30,8 @@ function PlantDetail({ match }) {
       setIsHealthy
     );
     setMqttClient(client);
-    return () => {
-      client.end();
-    };
-  }, []); // Mảng phụ thuộc rỗng đảm bảo rằng hàm chỉ chạy một lần
+    return () => client.end();
+  }, []);
   useEffect(() => {
     const clientInit = initMQTT();
     setInitMQTT(clientInit);
@@ -40,17 +39,24 @@ function PlantDetail({ match }) {
       clientInit.end();
     };
   }, []);
+  useEffect(() => {
+    const clientInit = modeMQTT();
+    setModeMQTT(clientInit);
+    return () => {
+      clientInit.end();
+    };
+  }, []);
   const sendFanSpeed = () => {
-    const message = { fanSpeed: pendingFanSpeed };
-    sendMessageToMQTT(initMqtt, TOPIC_MANUAL, message);
+    const message = { fanSpeed: pendingFanSpeed, pumpSpeed: pendingPumpSpeed, isLight: !isLightOn };
+    sendMessageToMQTT(initMqtt, TOPIC_CONTROL, message);
   };
   const sendPumpSpeed = () => {
-    const message = { pumpSpeed: pendingPumpSpeed };
-    sendMessageToMQTT(initMqtt, TOPIC_MANUAL, message);
+    const message = { fanSpeed: pendingFanSpeed, pumpSpeed: pendingPumpSpeed, isLight: !isLightOn };
+    sendMessageToMQTT(initMqtt, TOPIC_CONTROL, message);
   };
   const sendLight = () => {
-    const message = { isLightOn: !isLightOn };
-    sendMessageToMQTT(initMqtt, TOPIC_MANUAL, message);
+    const message = { fanSpeed: pendingFanSpeed, pumpSpeed: pendingPumpSpeed, isLight: !isLightOn };
+    sendMessageToMQTT(initMqtt, TOPIC_CONTROL, message);
   };
   // Handlers for plant condition changes
   const handleFanSpeedChange = (e) => setFanSpeed(e.target.value);
@@ -71,7 +77,7 @@ function PlantDetail({ match }) {
   // Toggle handler for manual control
   const handleControlToggle = () => {
     setIsManualControl(!isManualControl);
-    sessionStorage.setItem('isManualControl', JSON.stringify(isManualControl));
+    sessionStorage.setItem("isManualControl", JSON.stringify(isManualControl));
     if (!isManualControl) {
       // Ngay khi chuyển sang chế độ chỉnh tay, gửi dữ liệu hiện tại
       sendFanSpeed();
@@ -229,7 +235,7 @@ function PlantDetail({ match }) {
                   <input
                     type="range"
                     min="0"
-                    max="100"
+                    max="255"
                     value={pendingFanSpeed}
                     onChange={handlePendingFanSpeedChange}
                     className="my-2"
@@ -265,7 +271,7 @@ function PlantDetail({ match }) {
                   <input
                     type="range"
                     min="0"
-                    max="100"
+                    max="255"
                     value={pendingPumpSpeed}
                     onChange={handlePendingPumpSpeedChange}
                   />
