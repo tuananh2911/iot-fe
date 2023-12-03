@@ -1,5 +1,5 @@
 // api.js
-const BASE_URL = "http://localhost:5001";
+const BASE_URL = "http://103.77.246.226:5001";
 const registerUser = async (email, password) => {
   try {
     const response = await fetch(`${BASE_URL}/auth/sign-up`, {
