@@ -36,6 +36,7 @@ const loginUser = async (email, password) => {
     return data;
   } catch (error) {
     // Xử lý lỗi kết nối hoặc lỗi khác
+    console.log(error)
     throw error;
   }
 };
