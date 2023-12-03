@@ -8,7 +8,9 @@ const connectMQTT = (
   setIsLightOn,
   setPumpSpeed,
   setFanSpeed,
-  setIsHealthy
+  setIsHealthy,
+  setIsRaining,
+  setOutdoorTemperature
 ) => {
   const client = mqtt.connect("ws://103.77.246.226:8083/mqtt");
 
@@ -23,19 +25,40 @@ const connectMQTT = (
   client.on("message", (topic, message) => {
     const msg = message.toString();
     const data = JSON.parse(msg);
-    setTemperature(data.temperature);
 
-    setHumidity(data.humidity);
-
-    setLux(data.lux);
-
-    setIsLightOn(data.isLight);
-
-    setPumpSpeed(data.pumpSpeed);
-
-    setFanSpeed(data.fanSpeed);
-
-    setIsHealthy(data.healthy);
+    Object.keys(data).forEach((key) => {
+      switch (key) {
+        case "temperature":
+          setTemperature(data[key]);
+          break;
+        case "humidity":
+          setHumidity(data[key]);
+          break;
+        case "lux":
+          setLux(data[key]);
+          break;
+        case "isLight":
+          setIsLightOn(data[key]);
+          break;
+        case "pumpSpeed":
+          setPumpSpeed(data[key]);
+          break;
+        case "fanSpeed":
+          setFanSpeed(data[key]);
+          break;
+        case "healthy":
+          setIsHealthy(data[key]);
+          break;
+        case "isRain":
+          setIsRaining(data[key]);
+          break;
+        case "temperatureOut":
+          setOutdoorTemperature(data[key]);
+          break;
+        default:
+          console.log(`Unknown key: ${key}`);
+      }
+    });
   });
 
   return client;

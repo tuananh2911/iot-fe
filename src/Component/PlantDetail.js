@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
+import { useParams } from "react-router-dom";
 import { Icon } from "@iconify/react";
-import { TOPIC_DATA, TOPIC_CONTROL, TOPIC_CHECK_MODE, TOPIC_RESPONSE_MODE } from "../constant";
-import { connectMQTT, sendMessageToMQTT, initMQTT, modeMQTT } from "../mqtt-service";
+import {
+  TOPIC_CONTROL,
+} from "../constant";
+import {
+  connectMQTT,
+  sendMessageToMQTT,
+  initMQTT,
+  modeMQTT,
+} from "../mqtt-service";
 function PlantDetail({ match }) {
-  const { id } = 1;
+  const { name } = useParams();
   const [temperature, setTemperature] = useState(25);
   const [humidity, setHumidity] = useState(60);
-  const [lux, setLux] = useState(500);
+  const [lux, setLux] = useState(100);
   const [isHealthy, setIsHealthy] = useState(true);
   const [fanSpeed, setFanSpeed] = useState(0);
   const [pumpSpeed, setPumpSpeed] = useState(0);
@@ -19,6 +27,8 @@ function PlantDetail({ match }) {
   const [mqttClient, setMqttClient] = useState(null);
   const [initMqtt, setInitMQTT] = useState(null);
   const [modeCheckMQTT, setModeMQTT] = useState(null);
+  const [isRaining, setIsRaining] = useState(false);
+  const [outdoorTemperature, setOutdoorTemperature] = useState(null);
   useEffect(() => {
     const client = connectMQTT(
       setTemperature,
@@ -27,7 +37,9 @@ function PlantDetail({ match }) {
       setIsLightOn,
       setPumpSpeed,
       setFanSpeed,
-      setIsHealthy
+      setIsHealthy,
+      setIsRaining,
+      setOutdoorTemperature
     );
     setMqttClient(client);
     return () => client.end();
@@ -47,15 +59,27 @@ function PlantDetail({ match }) {
     };
   }, []);
   const sendFanSpeed = () => {
-    const message = { fanSpeed: pendingFanSpeed, pumpSpeed: pendingPumpSpeed, isLight: !isLightOn };
+    const message = {
+      fanSpeed: pendingFanSpeed,
+      pumpSpeed: pendingPumpSpeed,
+      isLight: !isLightOn,
+    };
     sendMessageToMQTT(initMqtt, TOPIC_CONTROL, message);
   };
   const sendPumpSpeed = () => {
-    const message = { fanSpeed: pendingFanSpeed, pumpSpeed: pendingPumpSpeed, isLight: !isLightOn };
+    const message = {
+      fanSpeed: pendingFanSpeed,
+      pumpSpeed: pendingPumpSpeed,
+      isLight: !isLightOn,
+    };
     sendMessageToMQTT(initMqtt, TOPIC_CONTROL, message);
   };
   const sendLight = () => {
-    const message = { fanSpeed: pendingFanSpeed, pumpSpeed: pendingPumpSpeed, isLight: !isLightOn };
+    const message = {
+      fanSpeed: pendingFanSpeed,
+      pumpSpeed: pendingPumpSpeed,
+      isLight: !isLightOn,
+    };
     sendMessageToMQTT(initMqtt, TOPIC_CONTROL, message);
   };
   // Handlers for plant condition changes
@@ -120,11 +144,11 @@ function PlantDetail({ match }) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col medium-h-screen">
       <Header />
-      <div className="container mx-auto px-4 py-8 mt-16">
+      <div className="container mx-auto px-4 py-8 mt-8">
         <h2 className="text-2xl font-bold text-center mb-4">
-          Thông tin chi tiết của cây trồng có id {id}
+          Thông tin chi tiết của: {name}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
           {/* Trạng thái cây */}
@@ -332,15 +356,41 @@ function PlantDetail({ match }) {
               )}
             </div>
           </div>
+          <div className="data-card p-4 rounded-lg bg-blue-200">
+            <div className="flex items-center justify-center mb-2">
+              <Icon
+                icon={isRaining ? "mdi:weather-rainy" : "mdi:weather-sunny"}
+                className="text-5xl"
+              />
+            </div>
+            <h3 className="text-xl font-bold text-center">
+              {isRaining ? "Đang mưa" : "Không mưa"}
+            </h3>
+          </div>
+          <div className="data-card p-4 rounded-lg bg-blue-200">
+            <div className="flex items-center justify-center mb-2">
+              <Icon icon="mdi:thermometer" className="text-5xl" />
+            </div>
+            <h3 className="text-xl font-bold text-center">
+              Nhiệt độ ngoài trời
+            </h3>
+            <p className="text-lg text-center">
+              {outdoorTemperature
+                ? `${outdoorTemperature} °C`
+                : "Đang cập nhật..."}
+            </p>
+          </div>
         </div>
         <div className="text-center mt-4">
           <button
             onClick={handleControlToggle}
-            className={`w-40 h-12 px-4 py-2 ${
+            className={`w-60 h-12 px-4 py-2 font-medium ${
               isManualControl ? "bg-blue-600" : "bg-orange-600"
             } text-white rounded-full text-sm`}
           >
-            {isManualControl ? "Chế độ tự động" : "Chế độ chỉnh tay"}
+            {isManualControl
+              ? "Chuyển sang chế độ tự động"
+              : "Chuyển sang chế độ chỉnh tay"}
           </button>
         </div>
       </div>
