@@ -62,7 +62,7 @@ function PlantDetail({ match }) {
     const message = {
       fanSpeed: pendingFanSpeed,
       pumpSpeed: pendingPumpSpeed,
-      isLight: isLightOn,
+      isLight: !isLightOn,
     };
     sendMessageToMQTT(initMqtt, TOPIC_CONTROL, message);
   };
@@ -70,7 +70,7 @@ function PlantDetail({ match }) {
     const message = {
       fanSpeed: pendingFanSpeed,
       pumpSpeed: pendingPumpSpeed,
-      isLight: isLightOn,
+      isLight: !isLightOn,
     };
     sendMessageToMQTT(initMqtt, TOPIC_CONTROL, message);
   };
@@ -78,7 +78,7 @@ function PlantDetail({ match }) {
     const message = {
       fanSpeed: pendingFanSpeed,
       pumpSpeed: pendingPumpSpeed,
-      isLight: isLightOn,
+      isLight: !isLightOn,
     };
     sendMessageToMQTT(initMqtt, TOPIC_CONTROL, message);
   };
