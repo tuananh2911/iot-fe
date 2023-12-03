@@ -101,7 +101,12 @@ function PlantDetail({ match }) {
   // Toggle handler for manual control
   const handleControlToggle = () => {
     setIsManualControl(!isManualControl);
-    sessionStorage.setItem("isManualControl", JSON.stringify(isManualControl));
+    if(isManualControl){
+      sessionStorage.setItem("isManualControl", false);
+    }else{
+      sessionStorage.setItem("isManualControl", true);
+    }
+    
     if (!isManualControl) {
       // Ngay khi chuyển sang chế độ chỉnh tay, gửi dữ liệu hiện tại
       sendFanSpeed();

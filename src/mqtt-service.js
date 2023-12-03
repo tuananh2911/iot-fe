@@ -73,9 +73,8 @@ const modeMQTT = () => {
     client.subscribe(TOPIC_CHECK_MODE);
   });
   client.on("message", (topic, message) => {
-    const isManualControl = JSON.parse(
-      sessionStorage.getItem("isManualControl")
-    );
+    const isManualControl = sessionStorage.getItem("isManualControl");
+    console.log('data', isManualControl)
     const mode = { isManualControl: isManualControl };
     sendMessageToMQTT(client, TOPIC_RESPONSE_MODE, mode);
   });
